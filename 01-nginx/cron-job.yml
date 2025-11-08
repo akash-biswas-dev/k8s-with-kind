@@ -1,0 +1,47 @@
+kind: CronJob
+apiVersion: batch/v1
+metadata:
+  name: cron-job
+  namespace: nginx
+spec:
+  schedule: "* * * * *" # At every second minute.
+  jobTemplate:
+    spec:
+      template:
+        metadata:
+          name: demo-cron-job
+          labels:
+            app: two-minute-backup
+        spec:
+          containers:
+          - name: batch-job
+            image: busybox:latest
+            command:
+            - sh
+            - -c
+            - >
+              echo "Backup started" &&
+              echo "Transfer all the data to the remote server." && 
+              sleep 3 &&
+              echo "Backup completed"
+            # Mount volumes to the pods.
+            volumeMounts:
+              - name: data-volume
+                mountPath: /demo-data
+              - name: backup-volume
+                mountPath: /backups
+          
+          restartPolicy: OnFailure
+          # Volume definations      
+          volumes:
+            - name: data-volume
+              hostPath: 
+                path: /demo-data
+                type: DirectoryOrCreate
+            - name: backup-volume
+              hostPath:
+                path: /backups
+                type: DirectoryOrCreate 
+
+      
+
